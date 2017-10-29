@@ -9,7 +9,7 @@
 #include <vector>
 #include <MyGL/FrameRate.hpp>
 
-#define DRONE_SPEED 30.0f
+#define DRONE_SPEED 0.3f
 class DroneGroup
 {
 private:

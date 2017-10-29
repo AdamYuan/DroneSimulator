@@ -74,7 +74,7 @@ void Application::Run()
 			if(NextModel != 0)
 				Group.SetDestinations(Points[NextModel++]);
 			else
-				Group.SetDestinations(Points[NextModel++]);
+				Group.SetDestinations(Points[NextModel++], 0.03f);
 
 			if(NextModel > MODEL_NUM)
 				NextModel = 0;
@@ -274,7 +274,7 @@ void Application::InitOpengl()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	Window = glfwCreateWindow(WIDTH, HEIGHT, "HiMCM2017_ProblemA", nullptr, nullptr);
+	Window = glfwCreateWindow(WIDTH, HEIGHT, "ProblemA", nullptr, nullptr);
 	if(Window == nullptr)
 		throw std::runtime_error("Error when creating Window");
 
