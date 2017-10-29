@@ -6,7 +6,7 @@
 #include "Application.hpp"
 #include <algorithm>
 
-#define WIDTH 1080
+#define WIDTH 1200
 #define HEIGHT 700
 #define GROUND_Y 0.0f
 #define H_GROUND_SIZE 1000.0f
@@ -40,6 +40,8 @@ Application::Application(int argc, char **(&argv))
 		ObjFiles[i].Load(objNames[i], densitys[i], scales[i], deltaY[i]);
 		ObjFiles[i].PickPoints(pointNum, Points[i]);
 		std::cout << Points[i].size() << " drones total for object " << objNames[i] << std::endl;
+		if(Points[i].size() < pointNum)
+			throw std::runtime_error("Too few points");
 		sort(Points[i].begin(), Points[i].end(), cmp);
 	}
 
@@ -201,10 +203,6 @@ void Application::Control()
 		Camera.MoveForward(dist, 90);
 	if(glfwGetKey(Window, GLFW_KEY_D))
 		Camera.MoveForward(dist, -90);
-	/*if(glfwGetKey(Window, GLFW_KEY_SPACE))
-		Camera.MoveUp(MOVE_DIST);
-	if(glfwGetKey(Window, GLFW_KEY_LEFT_SHIFT))
-		Camera.MoveUp(-MOVE_DIST);*/
 
 	if(glfwGetKey(Window, GLFW_KEY_ENTER))
 		Transform = true;

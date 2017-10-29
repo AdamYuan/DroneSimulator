@@ -1,4 +1,6 @@
 # Drone Simulator
+## Usage
+    Press W,A,S,D to move the camera, Press ENTER to switch the model
 ## How to install
 ```bash
 git clone https://github.com/AdamYuan/DroneSimulator
