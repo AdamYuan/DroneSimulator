@@ -16,7 +16,7 @@ private:
 	std::vector<glm::vec3> Drones;
 	std::vector<glm::vec3> Destinations;
 	std::vector<glm::vec3> Directions;
-	std::vector<bool> Arrived, Launched;
+	std::vector<bool> Arrived;
 	float SecondsDelay, LastTime;
 	int LaunchedSize;
 public:
