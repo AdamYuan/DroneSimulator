@@ -19,6 +19,6 @@ void main()
     // also gamma correct while we're at it
     result = pow(result, vec3(1.0 / gamma));
 
-    vec3 sky = texture(skybox, TexCoords).rgb;
-    FragColor = vec4(sky + result, 1.0);
+    vec3 skyColor = texture(skybox, TexCoords).rgb;
+    FragColor = vec4(skyColor + result, 1.0);
 }

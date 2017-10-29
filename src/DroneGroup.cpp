@@ -37,7 +37,10 @@ bool DroneGroup::AllArrived() const {
 	return true;
 }
 
+///TODO:record the flying path and distance
+
 void DroneGroup::NextTick(const MyGL::FrameRateManager &FPSManager){
+
 	float dist = FPSManager.GetMovementDistance(DRONE_SPEED);
 	for(auto i = static_cast<size_t>(LaunchedSize); i < Drones.size(); ++i)
 		if(LastTime + SecondsDelay <= glfwGetTime()) {
@@ -46,6 +49,7 @@ void DroneGroup::NextTick(const MyGL::FrameRateManager &FPSManager){
 		}
 		else
 			break;
+			
 	for(size_t i = 0; i < LaunchedSize; ++i)
 	{
 		if(Arrived[i])

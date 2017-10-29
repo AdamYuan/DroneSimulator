@@ -6,8 +6,6 @@
 #include "Application.hpp"
 #include <algorithm>
 
-#define WIDTH 1200
-#define HEIGHT 700
 #define GROUND_Y 0.0f
 #define H_GROUND_SIZE 1000.0f
 #define INIT_DENSITY 0.7f
@@ -18,6 +16,13 @@ bool control = true;
 void focusCallback(GLFWwindow*, int focused)
 {
 	control = focused != 0;
+}
+int sWidth, sHeight;
+bool resized = false;
+void framebufferSizeCallback(GLFWwindow*, int width, int height)
+{
+	sWidth = width, sHeight = height;
+	resized = true;
 }
 
 Application::Application(int argc, char **(&argv))
@@ -67,8 +72,8 @@ Application::Application(int argc, char **(&argv))
 
 void Application::Run()
 {
-	glViewport(0, 0, WIDTH, HEIGHT);
-	Matrices.UpdateMatrices(WIDTH, HEIGHT);
+	glViewport(0, 0, Width, Height);
+	Matrices.UpdateMatrices(Width, Height);
 
 	while(!glfwWindowShouldClose(Window))
 	{
@@ -90,21 +95,32 @@ void Application::Run()
 
 		glfwSwapBuffers(Window);
 		glfwPollEvents();
+		if(resized)
+		{
+			Width = sWidth, Height = sHeight, resized = false;
+			glViewport(0, 0, Width, Height);
+			Matrices.UpdateMatrices(Width, Height);
+			UpdateFramebuffers();
+		}
+
+		if(glfwGetMouseButton(Window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			glfwSetCursorPos(Window, Width / 2, Height / 2);
+			control = true;
+		}
+
 		if(control)
+		{
+			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 			Control();
+		}
+		else
+			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 }
 
 Application::~Application()
 {
-	glDeleteFramebuffers(1, &LightFBO);
-	glDeleteFramebuffers(1, &SkyboxFBO);
-	glDeleteFramebuffers(2, PingpongFBO);
-
-	glDeleteTextures(1, &LightColorBuffer);
-	glDeleteTextures(1, &SkyboxColorBuffer);
-	glDeleteTextures(2, PingpongColorbuffers);
-
+	DeleteFramebuffers();
 	glfwTerminate();
 }
 
@@ -206,12 +222,14 @@ void Application::Control()
 
 	if(glfwGetKey(Window, GLFW_KEY_ENTER))
 		Transform = true;
+	if(glfwGetKey(Window, GLFW_KEY_ESCAPE))
+		control = false;
 
 	double x, y;
 	glfwGetCursorPos(Window, &x, &y);
-	Camera.ProcessMouseMovement((float) (WIDTH / 2 - x), (float) (HEIGHT / 2 - y),
+	Camera.ProcessMouseMovement((float) (Width / 2 - x), (float) (Height / 2 - y),
 								MOUSE_SENSITIVITY);
-	glfwSetCursorPos(Window, WIDTH / 2, HEIGHT / 2);
+	glfwSetCursorPos(Window, Width / 2, Height / 2);
 }
 
 void Application::InitFramebuffers()
@@ -221,7 +239,7 @@ void Application::InitFramebuffers()
 	// create a color attachment texture
 	glGenTextures(1, &LightColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, LightColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
@@ -233,7 +251,7 @@ void Application::InitFramebuffers()
 	// create a color attachment texture
 	glGenTextures(1, &SkyboxColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, SkyboxColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WIDTH, HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
@@ -247,15 +265,12 @@ void Application::InitFramebuffers()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, PingpongFBO[i]);
 		glBindTexture(GL_TEXTURE_2D, PingpongColorbuffers[i]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, WIDTH, HEIGHT, 0, GL_RGB, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Width, Height, 0, GL_RGB, GL_FLOAT, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // we clamp to the edge as the blur filter would otherwise sample repeated texture values!
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, PingpongColorbuffers[i], 0);
-		// also check if framebuffers are complete (no need for depth buffer)
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			std::cout << "Framebuffer not complete!" << std::endl;
 	}
 }
 
@@ -269,10 +284,10 @@ void Application::InitOpengl()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-	Window = glfwCreateWindow(WIDTH, HEIGHT, "ProblemA", nullptr, nullptr);
+	Window = glfwCreateWindow(Width, Height, "ProblemA", nullptr, nullptr);
 	if(Window == nullptr)
 		throw std::runtime_error("Error when creating Window");
 
@@ -283,9 +298,9 @@ void Application::InitOpengl()
 		throw std::runtime_error("Error when initialize GLEW");
 
 	//hide the mouse
-	glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
 	glfwSetWindowFocusCallback(Window, focusCallback);
+	glfwSetFramebufferSizeCallback(Window, framebufferSizeCallback);
 }
 
 void Application::InitResources()
@@ -390,6 +405,31 @@ void Application::InitResources()
 									  "resources/skybox/front.png"
 							  });
 	SkyboxTexture.SetParameters(GL_LINEAR, GL_LINEAR, GL_CLAMP_TO_EDGE);
+}
+
+void Application::UpdateFramebuffers()
+{
+	glBindTexture(GL_TEXTURE_2D, LightColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+	glBindTexture(GL_TEXTURE_2D, SkyboxColorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+
+	for (unsigned int PingpongColorbuffer : PingpongColorbuffers) {
+		glBindTexture(GL_TEXTURE_2D, PingpongColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, Width, Height, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+}
+
+void Application::DeleteFramebuffers()
+{
+	glDeleteFramebuffers(1, &LightFBO);
+	glDeleteFramebuffers(1, &SkyboxFBO);
+	glDeleteFramebuffers(2, PingpongFBO);
+
+	glDeleteTextures(1, &LightColorBuffer);
+	glDeleteTextures(1, &SkyboxColorBuffer);
+	glDeleteTextures(2, PingpongColorbuffers);
 }
 
 

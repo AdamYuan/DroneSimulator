@@ -22,6 +22,7 @@
 class Application
 {
 private:
+	int Width = 1200, Height = 700;
 	GLFWwindow *Window = nullptr;
 
 	MyGL::Matrices Matrices;
@@ -47,6 +48,9 @@ private:
 	void InitFramebuffers();
 	void InitOpengl();
 	void InitResources();
+
+	void UpdateFramebuffers();
+	void DeleteFramebuffers();
 
 	void Render();
 	void RenderLight();
