@@ -12,7 +12,7 @@
 
 //most of the framebuffer stuff is from https://learnopengl.com/
 
-bool control = true;
+bool control = true, showPath = false, bloom = true, transform = false;
 void focusCallback(GLFWwindow*, int focused)
 {
 	control = focused != 0;
@@ -24,6 +24,20 @@ void framebufferSizeCallback(GLFWwindow*, int width, int height)
 	sWidth = width, sHeight = height;
 	resized = true;
 }
+void keyCallback(GLFWwindow*, int key, int scancode, int action, int mods)
+{
+	if(action != GLFW_PRESS)
+		return;
+	if(key == GLFW_KEY_V)
+		showPath = !showPath;
+	if(key == GLFW_KEY_B)
+		bloom = !bloom;
+	if(key == GLFW_KEY_ENTER)
+		transform = true;
+	if(key == GLFW_KEY_ESCAPE)
+		control = false;
+
+}
 
 Application::Application(int argc, char **(&argv))
 {
@@ -32,7 +46,7 @@ Application::Application(int argc, char **(&argv))
 	float densitys[MODEL_NUM] = {1.5f, 1.5f, 1.5f};
 	float scales[MODEL_NUM] = {0.06f, 1.6f, 0.025f};
 	float deltaY[MODEL_NUM] = {45.0f, 25.0f, 20.0f};
-	int pointNum = 1300;
+	int pointNum = 1296;
 
 	InitOpengl();
 	InitResources();
@@ -56,18 +70,18 @@ Application::Application(int argc, char **(&argv))
 	float mx = -sqrt_pointNum * INIT_DENSITY / 2;
 	for(int i=0; i<pointNum; ++i)
 		initialPositions.emplace_back(
-				mx + (i % sqrt_pointNum) * INIT_DENSITY - INIT_DENSITY / 2,
+				mx + (i % sqrt_pointNum) * INIT_DENSITY + INIT_DENSITY / 2,
 				GROUND_Y,
-				mx + (i / sqrt_pointNum) * INIT_DENSITY - INIT_DENSITY / 2);
+				mx + (i / sqrt_pointNum) * INIT_DENSITY + INIT_DENSITY / 2);
 
-	HalfLaunchAreaSize = -mx + INIT_DENSITY;
+	HalfLaunchAreaSize = -mx;
 
 	sort(initialPositions.begin(), initialPositions.end(), cmp);
 	Group.Init(initialPositions);
 
 	std::swap(Points[MODEL_NUM], initialPositions);
 
-	Camera.Position.y = GROUND_Y + 1.7f;
+	Camera.Position = glm::vec3(-51.2138, GROUND_Y + 1.7, 80.3485);
 }
 
 void Application::Run()
@@ -77,16 +91,20 @@ void Application::Run()
 
 	while(!glfwWindowShouldClose(Window))
 	{
-		if(Transform && NextModel <= MODEL_NUM && Group.AllArrived()) {
+		if(transform && NextModel <= MODEL_NUM && Group.AllArrived()) {
 			if(NextModel != 0)
 				Group.SetDestinations(Points[NextModel++]);
-			else
+			else {
+				Group.ClearRecords();
 				Group.SetDestinations(Points[NextModel++], 0.03f);
+			}
 
 			if(NextModel > MODEL_NUM)
 				NextModel = 0;
+
+			transform = false;
 		}
-		Transform = false;
+
 		Group.NextTick(FPSManager);
 
 		FPSManager.UpdateFrameRateInfo();
@@ -157,11 +175,13 @@ void Application::Render()
 	GroundTexture.Bind();
 	GroundObject.Render(GL_TRIANGLES);
 
+	RenderPath();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// blur bright fragments with two-pass Gaussian Blur
 	bool horizontal = true, first_iteration = true;
-	unsigned int amount = 10;
+	unsigned int amount = bloom ? 10 : 0;
 	BlurShader.Use();
 	for (unsigned int i = 0; i < amount; i++)
 	{
@@ -180,15 +200,35 @@ void Application::Render()
 	glEnable(GL_DEPTH_TEST);
 	FinalShader.Use();
 	FinalShader.PassInt("scene", 0);
-	FinalShader.PassInt("bloomBlur", 1);
+	FinalShader.PassInt("bloomBlur", bloom ? 1 : 3);
 	FinalShader.PassInt("skybox", 2);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, LightColorBuffer);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, PingpongColorbuffers[!horizontal]);
+	if(bloom)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, PingpongColorbuffers[!horizontal]);
+	}
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, SkyboxColorBuffer);
 	ScreenObject.Render(GL_TRIANGLES);
+}
+void Application::RenderPath()
+{
+	if(!showPath)
+		return;
+
+	LightShader.Use();
+	LightShader.PassVec4("color", glm::vec4(1.0, 1.0, 0.0, 1.0));
+	for(int i=0; i<RECORD_NUM; ++i)
+	{
+		MyGL::VertexObject line;
+
+		line.SetDataVec(Group.GetRecordPositions(i));
+		line.SetAttributes(1, 0, 3);
+
+		line.Render(GL_LINE_STRIP);
+	}
 }
 void Application::RenderLight()
 {
@@ -200,10 +240,12 @@ void Application::RenderLight()
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	LightShader.Use();
 
+	LightShader.PassVec4("color", glm::vec4(1.0, 0.0, 0.0, 1.0));
 	LightShader.PassMat4("projection", Matrices.Projection3d);
 	LightShader.PassMat4("view", Camera.GetViewMatrix());
 
 	lightObject.Render(GL_POINTS);
+
 }
 
 #define MOVE_DIST 0.4f
@@ -219,11 +261,6 @@ void Application::Control()
 		Camera.MoveForward(dist, 90);
 	if(glfwGetKey(Window, GLFW_KEY_D))
 		Camera.MoveForward(dist, -90);
-
-	if(glfwGetKey(Window, GLFW_KEY_ENTER))
-		Transform = true;
-	if(glfwGetKey(Window, GLFW_KEY_ESCAPE))
-		control = false;
 
 	double x, y;
 	glfwGetCursorPos(Window, &x, &y);
@@ -301,6 +338,7 @@ void Application::InitOpengl()
 
 	glfwSetWindowFocusCallback(Window, focusCallback);
 	glfwSetFramebufferSizeCallback(Window, framebufferSizeCallback);
+	glfwSetKeyCallback(Window, keyCallback);
 }
 
 void Application::InitResources()

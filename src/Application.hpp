@@ -40,7 +40,6 @@ private:
 			SkyboxFBO, SkyboxColorBuffer;
 
 	DroneGroup Group;
-	bool Transform = false;
 	int NextModel = 0;
 
 	float HalfLaunchAreaSize;
@@ -60,6 +59,8 @@ public:
 	Application(int argc, char **(&argv));
 	~Application();
 	void Run();
+
+	void RenderPath();
 };
 
 
