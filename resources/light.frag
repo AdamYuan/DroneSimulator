@@ -1,6 +1,13 @@
 #version 330 core
-out vec4 color;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 LightColor;
+uniform vec4 color;
+uniform bool light;
 void main()
 {
-    color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    FragColor = color;
+	if(light)
+		LightColor = color;
+	else
+		LightColor = vec4(0.0f);
 }

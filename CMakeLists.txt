@@ -31,5 +31,6 @@ endif()
 
 include_directories(dep)
 file(GLOB SOURCE_FILES src/*.cpp dep/MyGL/*.cpp)
+file(GLOB RES_FILES resources/*.frag resources/*.vert resources/*.png resources/skybox/*.png)
 
-add_executable(ProblemA ${SOURCE_FILES})
+add_executable(ProblemA ${RES_FILES} ${SOURCE_FILES})

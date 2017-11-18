@@ -1,7 +1,8 @@
 # Drone Simulator
 ## Usage
-    Press W,A,S,D to move the camera
+    Press W,A,S,D,LEFT_SHIFT,SPACE to move the camera
     Press ENTER to switch the model
+	Press F to switch flying
     Press V to switch flying path
     Press B to switch bloom
 ## How to install

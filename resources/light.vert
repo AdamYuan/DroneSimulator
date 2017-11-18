@@ -5,5 +5,5 @@ uniform mat4 view, projection;
 void main()
 {
 	gl_Position = projection * view * position;
-    gl_PointSize = max(100.0f / gl_Position.z, 1.5f);
+	gl_PointSize = max(100.0f / gl_Position.z, 2.0f);
 }

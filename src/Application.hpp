@@ -36,8 +36,8 @@ private:
 
 	std::vector<glm::vec3> Points[MODEL_NUM + 1];
 
-	unsigned int LightFBO, LightColorBuffer, RBO, PingpongFBO[2], PingpongColorbuffers[2],
-			SkyboxFBO, SkyboxColorBuffer;
+	unsigned int HdrFBO, ColorBuffers[2], RBO, PingpongFBO[2], PingpongColorbuffers[2],
+			EnvironmentFBO, EnvironmentColorBuffer;
 
 	DroneGroup Group;
 	int NextModel = 0;
@@ -53,6 +53,8 @@ private:
 
 	void Render();
 	void RenderLight();
+	void RenderPath();
+	void RenderEnvironment();
 	void Control();
 
 public:
@@ -60,7 +62,6 @@ public:
 	~Application();
 	void Run();
 
-	void RenderPath();
 };
 
 

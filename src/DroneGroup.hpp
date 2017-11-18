@@ -34,7 +34,7 @@ public:
 	const std::vector<glm::vec3> &GetRecordPositions(size_t index) const;
 	void ClearRecords();
 	void SetDestinations(const std::vector<glm::vec3> &destinations, float secondsBetween = 0.0f);
-	void NextTick(const MyGL::FrameRateManager &FPSManager);
+	void NextTick(MyGL::FrameRateManager &FPSManager);
 };
 
 
