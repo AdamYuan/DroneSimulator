@@ -53,7 +53,6 @@ void DroneGroup::NextTick(MyGL::FrameRateManager &FPSManager){
 	static int s_seconds = 0;
 	if(glfwGetTime() > s_seconds + 1)
 	{
-		std::cout << FPSManager.GetFps() << std::endl;
 		s_seconds = static_cast<int>(glfwGetTime());
 		for(int i=0; i<RECORD_NUM; ++i) {
 			if(RecordDroneIndices[i] >= Drones.size())

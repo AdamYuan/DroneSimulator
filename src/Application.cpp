@@ -93,8 +93,33 @@ void Application::Run()
 	glViewport(0, 0, Width, Height);
 	Matrices.UpdateMatrices(Width, Height);
 
+	static int s_seconds = 0;
 	while(!glfwWindowShouldClose(Window))
 	{
+		Render();
+
+		glfwSwapBuffers(Window);
+		glfwPollEvents();
+
+		//process size event
+		if(resized)
+		{
+			Width = sWidth;
+			Height = sHeight;
+			resized = false;
+			glViewport(0, 0, Width, Height);
+			Matrices.UpdateMatrices(Width, Height);
+			UpdateFramebuffers();
+		}
+		//get control when mouse press
+		if(glfwGetMouseButton(Window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			glfwSetCursorPos(Window, Width / 2, Height / 2);
+			control = true;
+		}
+		//lock cameraY when not flying
+		if(!fly)
+			Camera.Position.y = CAMERA_Y;
+		//process key transforming
 		if(transform && NextModel <= MODEL_NUM && Group.AllArrived()) {
 			if(NextModel != 0)
 				Group.SetDestinations(Points[NextModel++]);
@@ -105,35 +130,8 @@ void Application::Run()
 
 			if(NextModel > MODEL_NUM)
 				NextModel = 0;
-
-			transform = false;
 		}
-
-		Group.NextTick(FPSManager);
-
-		FPSManager.UpdateFrameRateInfo();
-
-		Render();
-
-		glfwSwapBuffers(Window);
-		glfwPollEvents();
-		if(resized)
-		{
-			Width = sWidth;
-			Height = sHeight;
-			resized = false;
-			glViewport(0, 0, Width, Height);
-			Matrices.UpdateMatrices(Width, Height);
-			UpdateFramebuffers();
-		}
-
-		if(!fly)
-			Camera.Position.y = CAMERA_Y;
-
-		if(glfwGetMouseButton(Window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-			glfwSetCursorPos(Window, Width / 2, Height / 2);
-			control = true;
-		}
+		transform = false;
 
 		if(control)
 		{
@@ -142,6 +140,20 @@ void Application::Run()
 		}
 		else
 			glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+
+		//print fps
+		if(glfwGetTime() > s_seconds + 1)
+		{
+			std::cout << "fps:" << FPSManager.GetFps() << std::endl;
+			s_seconds = static_cast<int>(glfwGetTime());
+		}
+
+		//update drone positions
+		Group.NextTick(FPSManager);
+
+		//update framerate information
+		FPSManager.UpdateFrameRateInfo();
 	}
 }
 
