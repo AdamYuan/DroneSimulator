@@ -5,7 +5,7 @@ namespace MyGL
 	class FrameRateManager
 	{
 	private:
-		float last, delta, i = 0, delta_plus = 0;
+		float last{}, delta{}, i = 0, delta_plus = 0.0001f;
 	public:
 		void UpdateFrameRateInfo();
 		float GetFps();

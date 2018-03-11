@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
 	try {
-		Application App(argc, argv);
+		Application App{};
 		App.Run();
 	}
 	catch (std::exception &e)

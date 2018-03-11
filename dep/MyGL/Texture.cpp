@@ -100,4 +100,9 @@ namespace MyGL
 	void Texture::freeImageArray() {
 		SOIL_free_image_data(imageData);
 	}
+
+	GLuint Texture::GetId() const
+	{
+		return id;
+	}
 }

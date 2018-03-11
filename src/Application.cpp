@@ -43,7 +43,7 @@ void keyCallback(GLFWwindow*, int key, int scancode, int action, int mods)
 		control = false;
 }
 
-Application::Application(int argc, char **(&argv))
+Application::Application()
 {
 	//process arguments
 	std::string objNames[MODEL_NUM] = {"models/wheel.obj", "models/dragon.obj", "models/kleinbottle.obj"};
@@ -56,12 +56,19 @@ Application::Application(int argc, char **(&argv))
 	InitResources();
 	InitFramebuffers();
 
-	auto cmp = [](const glm::vec3 &l, const glm::vec3 &r){return l.x - l.y + l.z < r.x - r.y + r.z;};
+	auto cmp = [](const glm::vec3 &l, const glm::vec3 &r){
+		//return glm::sqrt(l.x*l.x + l.z*l.z) - l.y < glm::sqrt(r.x*r.x + r.z*r.z) - r.y;
+		return l.x + l.z - l.y < r.x + r.z - r.y;
+	};
+
+
+	ObjFileLoader objFiles[3];
+
 	//prepare data
 	for(int i=0; i<MODEL_NUM; ++i)
 	{
-		ObjFiles[i].Load(objNames[i], density, scales[i], deltaY[i]);
-		ObjFiles[i].PickPoints(pointNum, Points[i]);
+		objFiles[i].Load(objNames[i], density, scales[i], deltaY[i]);
+		objFiles[i].PickPoints(pointNum, Points[i]);
 		std::cout << Points[i].size() << " drones total for object " << objNames[i] << std::endl;
 		if(Points[i].size() < pointNum)
 			throw std::runtime_error("Too few points");
@@ -85,7 +92,8 @@ Application::Application(int argc, char **(&argv))
 
 	std::swap(Points[MODEL_NUM], initialPositions);
 
-	Camera.Position = glm::vec3(-51.2138, CAMERA_Y, 80.3485);
+	//Camera.Position = glm::vec3(-51.2138, CAMERA_Y, 80.3485);
+	Camera.Position = glm::vec3(0, CAMERA_Y, 0);
 }
 
 void Application::Run()

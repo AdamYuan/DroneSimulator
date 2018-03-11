@@ -73,13 +73,13 @@ void DroneGroup::NextTick(MyGL::FrameRateManager &FPSManager){
 		}
 		else
 			break;
-			
+
 	for(size_t i = 0; i < LaunchedSize; ++i)
 	{
 		if(Arrived[i])
 			continue;
 
-		if(glm::distance(Drones[i], Destinations[i]) <= dist)
+		if(glm::length(Drones[i] - Destinations[i]) <= dist)
 		{
 			Drones[i] = Destinations[i];
 			Arrived[i] = true;

@@ -23,6 +23,7 @@ namespace MyGL
 		void BuildMipmap();
 		void Bind();
 		void Unbind();
+		GLuint GetId() const;
 		~Texture();
 	};
 }

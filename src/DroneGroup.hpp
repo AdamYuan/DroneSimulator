@@ -20,7 +20,7 @@ private:
 	std::vector<glm::vec3> Directions;
 	std::vector<bool> Arrived;
 	float SecondsDelay, LastTime;
-	int LaunchedSize;
+	int LaunchedSize = 0;
 
 	std::ofstream RecordFiles[RECORD_NUM];
 	std::vector<glm::vec3> RecordPositions[RECORD_NUM];

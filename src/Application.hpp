@@ -32,8 +32,6 @@ private:
 	MyGL::Texture SkyboxTexture, GroundTexture;
 	MyGL::FrameRateManager FPSManager;
 
-	ObjFileLoader ObjFiles[3];
-
 	std::vector<glm::vec3> Points[MODEL_NUM + 1];
 
 	unsigned int HdrFBO, ColorBuffers[2], RBO, PingpongFBO[2], PingpongColorbuffers[2],
@@ -58,7 +56,7 @@ private:
 	void Control();
 
 public:
-	Application(int argc, char **(&argv));
+	Application();
 	~Application();
 	void Run();
 
